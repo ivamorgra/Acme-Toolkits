@@ -33,3 +33,4 @@ inventor.item.form.error.duplicated  = Existing code
 inventor.item.form.error.retail-price-currency-not-available = Currency not available for the system
 inventor.item.form.error.retail-price-component-positive = The retail price must be greater than 0
 inventor.item.form.error.retail-price-tool-zero-or-positive = The retail price must be greater or equals than 0
+inventor.item.form.label.spam = This is a spam

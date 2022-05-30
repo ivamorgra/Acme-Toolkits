@@ -19,7 +19,6 @@
 
 	<acme:input-textbox code="inventor.item.form.label.name" path="name"/>
 	<acme:input-textbox code="inventor.item.form.label.code" placeholder="ABC-123-A" path="code"/>
-	<acme:input-textbox code="inventor.item.form.label.type" path="type" readonly="true"/>
 	<acme:input-textbox code="inventor.item.form.label.technology" path="technology"/>
 	<acme:input-textarea code="inventor.item.form.label.description" path="description"/>
 	<acme:input-money code="inventor.item.form.label.retailPrice" path="retailPrice"/>
@@ -30,7 +29,7 @@
 
 	
 	<jstl:if test="${command == 'create'}">
-		<acme:submit code="inventor.item.form.button.create" action="/inventor/item/create"/>
+		<acme:submit code="inventor.item.form.button.create" action="/inventor/item/create?type=${type}"/>
 	</jstl:if>
 	
 	<jstl:if test="${acme:anyOf(command, 'show, update, delete, publish') && published == 'false'}">

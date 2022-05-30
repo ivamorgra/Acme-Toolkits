@@ -18,7 +18,7 @@ public class InventorToolCreateTest extends TestHarness{
 		super.clickOnMenu("Inventor", "List my tools");
 		super.checkListingExists();
 
-		super.clickOnButton("Create new Tool");
+		super.clickOnButton("Create");
 		
 		super.fillInputBoxIn("name", name);
 		super.fillInputBoxIn("code", code);
@@ -34,7 +34,7 @@ public class InventorToolCreateTest extends TestHarness{
 		super.checkColumnHasValue(recordIndex, 0, name);
 		super.checkColumnHasValue(recordIndex, 1, code);
 		super.checkColumnHasValue(recordIndex, 2, technology);
-		super.checkColumnHasValue(recordIndex, 3, description);
+
 		super.clickOnListingRecord(recordIndex);
 
 		super.checkFormExists();
@@ -58,7 +58,7 @@ public class InventorToolCreateTest extends TestHarness{
 		super.clickOnMenu("Inventor", "List my tools");
 		super.checkListingExists();
 
-		super.clickOnButton("Create new Tool");
+		super.clickOnButton("Create");
 		
 		super.fillInputBoxIn("name", name);
 		super.fillInputBoxIn("code", code);

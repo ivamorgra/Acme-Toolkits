@@ -23,8 +23,6 @@
 		width="10%" />
 	<acme:list-column code="inventor.component.list.label.technology"
 		path="technology" width="40%" />
-	<acme:list-column code="inventor.component.list.label.description"
-		path="description" width="40%" />
 
 </acme:list>
 

@@ -22,7 +22,7 @@ public class InventorComponentCreateTest extends TestHarness {
 			super.clickOnMenu("Inventor", "List my components");
 			super.checkListingExists();
 
-			super.clickOnButton("Create new Component");
+			super.clickOnButton("Create");
 			
 			super.fillInputBoxIn("name", name);
 			super.fillInputBoxIn("code", code);
@@ -38,7 +38,6 @@ public class InventorComponentCreateTest extends TestHarness {
 			super.checkColumnHasValue(recordIndex, 0, name);
 			super.checkColumnHasValue(recordIndex, 1, code);
 			super.checkColumnHasValue(recordIndex, 2, technology);
-			super.checkColumnHasValue(recordIndex, 3, description);
 			super.clickOnListingRecord(recordIndex);
 
 			super.checkFormExists();
@@ -62,7 +61,7 @@ public class InventorComponentCreateTest extends TestHarness {
 			super.clickOnMenu("Inventor", "List my components");
 			super.checkListingExists();
 
-			super.clickOnButton("Create new Component");
+			super.clickOnButton("Create");
 			
 			super.fillInputBoxIn("name", name);
 			super.fillInputBoxIn("code", code);

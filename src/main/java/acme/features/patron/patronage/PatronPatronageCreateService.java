@@ -1,7 +1,10 @@
 package acme.features.patron.patronage;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,9 @@ import org.springframework.stereotype.Service;
 
 import acme.entities.Patronage;
 import acme.entities.PatronageStatus;
+import acme.entities.SystemConfiguration;
+import acme.features.administrator.systemConfiguration.AdministratorSystemConfigurationRepository;
+import acme.features.spam.SpamDetector;
 import acme.framework.components.models.Model;
 import acme.framework.controllers.Errors;
 import acme.framework.controllers.Request;
@@ -23,6 +29,9 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 
 	@Autowired
 	protected PatronPatronageRepository repository;
+	
+	@Autowired
+	protected AdministratorSystemConfigurationRepository	scRepo;
 
 	// AbstractCreateService<Patron, Patronage> interface -------------------------
 			
@@ -59,7 +68,7 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 		assert entity != null;
 		assert model != null;
 
-		request.unbind(entity, model, "status" ,"code", "legalStuff", "budget", "startDate","endDate","moreInfo","published");
+		request.unbind(entity, model, "status" ,"code", "legalStuff", "budget", "startDate","endDate","moreInfo","published", "creationMoment");
 		model.setAttribute("inventors", this.repository.findInventors());
 		
 	}
@@ -113,6 +122,20 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 		assert request != null;
 		assert entity != null;
 		assert errors != null;
+		
+		final SystemConfiguration sc = this.scRepo.findSystemConfigurationById();
+		final String[] parts = sc.getStrongSpam().split(";");
+		final String[] parts2 = sc.getWeakSpam().split(";");
+		final List<String> strongSpam = new LinkedList<>();
+		final List<String> weakSpam = new LinkedList<>();
+		Collections.addAll(strongSpam, parts);
+		Collections.addAll(weakSpam, parts2);
+
+		if (entity.getLegalStuff() != null && !entity.getLegalStuff().equals("")) {
+			final boolean spam1 = SpamDetector.validateNoSpam(entity.getLegalStuff(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getLegalStuff(), strongSpam, sc.getStrongThreshold());
+
+			errors.state(request, spam1, "legalStuff", "patron.patronage.form.label.spam", "spam");
+		}
 
 		if (!errors.hasErrors("code")) {
 			Patronage existing;
@@ -128,7 +151,7 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 		}
 		if(!errors.hasErrors("startDate")) {
 			final Date oneMonthAfterCreationDate = DateUtils.addMonths(entity.getCreationMoment(), 1);
-			errors.state(request,entity.getStartDate().after(oneMonthAfterCreationDate), "startDate", "patron.patronage.form.error.too-close");
+			errors.state(request,entity.getStartDate().equals(oneMonthAfterCreationDate) || entity.getStartDate().after(oneMonthAfterCreationDate), "startDate", "patron.patronage.form.error.too-close");
 		}
 		
 		
@@ -140,16 +163,12 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 		}
 		if(!errors.hasErrors("endDate")) {
 			final Date oneMonthAfterStartDate=DateUtils.addMonths(entity.getStartDate(), 1);
-			errors.state(request,entity.getEndDate().after(oneMonthAfterStartDate), "endDate", "patron.patronage.form.error.insufficient-duration");
+			errors.state(request,entity.getEndDate().equals(oneMonthAfterStartDate) || entity.getEndDate().after(oneMonthAfterStartDate), "endDate", "patron.patronage.form.error.insufficient-duration");
 		}
 		
 		
 		if (!errors.hasErrors("budget")) {
 			errors.state(request, entity.getBudget().getAmount() >= 1, "budget", "patron.patronage.form.error.minimum-budget");
-		}
-		
-		if(!errors.hasErrors("legalStuff")) {
-			//Completar con el detector de spam
 		}
 		
 	}
@@ -159,7 +178,8 @@ public class PatronPatronageCreateService implements AbstractCreateService<Patro
 		
 		assert request != null;
 		assert entity != null;
-
+		
+		entity.setPublished(false);
 		this.repository.save(entity);
 		
 	}

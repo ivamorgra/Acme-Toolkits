@@ -31,3 +31,5 @@ inventor.toolkit.form.button.components = Componentes
 inventor.toolkit.form.button.publish = Publicar
 
 inventor.toolkit.form.error.invalid-items = Debe haber al menos una herramienta y un componente
+inventor.toolkit.form.label.spam = Esto es spam
+inventor.toolkit.form.error.duplicated = Código existente

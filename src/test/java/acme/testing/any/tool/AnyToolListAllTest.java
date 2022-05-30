@@ -24,7 +24,6 @@ public class AnyToolListAllTest extends TestHarness{
 		super.checkColumnHasValue(recordIndex, 2, technology);
 		super.checkColumnHasValue(recordIndex, 1, code );
 		super.checkColumnHasValue(recordIndex, 0, name);
-		super.checkColumnHasValue(recordIndex, 3, description);
 		
 		
 		super.clickOnListingRecord(recordIndex);

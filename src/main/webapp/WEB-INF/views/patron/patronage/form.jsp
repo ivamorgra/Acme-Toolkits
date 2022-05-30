@@ -48,8 +48,21 @@
 			</jstl:forEach>
 		</acme:input-select>
   	</jstl:if>
+  	 	
+	<jstl:choose>
+		<jstl:when test="${acme:anyOf(command, 'show, update, delete, publish') && published == false}"> 
+				<acme:submit code="patron.patronage.form.button.update" action="/patron/patronage/update"/>
+				<acme:submit code="patron.patronage.form.button.delete" action="/patron/patronage/delete"/>
+				<acme:submit code="patron.patronage.form.button.publish" action="/patron/patronage/publish"/>
+		</jstl:when>
+		
+		<jstl:when test="${command=='create'}">
+			<acme:submit code="patron.patronage.form.button.create" action="/patron/patronage/create"/>
+		</jstl:when>
+	</jstl:choose>   
   		
 	<jstl:if test="${command == 'show'}">
+	
    		<h2 class="text-center">-------------------------------------------------------------------------------------------------------</h2>
 	    <acme:input-textbox code="patron.patronage.form.label.inventor.username" path="inventor.userAccount.username" readonly="true"/>
 	    <acme:input-textbox code="patron.patronage.form.label.inventor.name" path="inventor.userAccount.identity.name" readonly="true"/>
@@ -66,17 +79,6 @@
 	 	<acme:input-textbox code="patron.patronage.form.label.patron.userAccount.identity.email" path="patron.userAccount.identity.email" readonly="true"/>
 
 	</jstl:if>
- 	
-	<jstl:choose>
-		<jstl:when test="${acme:anyOf(command, 'show, update, delete, publish') && published == false}"> 
-				<acme:submit code="patron.patronage.form.button.update" action="/patron/patronage/update"/>
-				<acme:submit code="patron.patronage.form.button.delete" action="/patron/patronage/delete"/>
-				<acme:submit code="patron.patronage.form.button.publish" action="/patron/patronage/publish"/>
-		</jstl:when>
-		
-		<jstl:when test="${command=='create'}">
-			<acme:submit code="patron.patronage.form.button.create" action="/patron/patronage/create"/>
-		</jstl:when>
-	</jstl:choose>    
+ 
 
  </acme:form>  

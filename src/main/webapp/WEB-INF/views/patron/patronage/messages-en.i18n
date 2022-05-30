@@ -57,5 +57,7 @@
  patron.patronage.form.button.delete = Delete
  patron.patronage.form.button.publish = Publish
  
+ patron.patronage.form.label.spam = This is a spam
+ 
  
  

@@ -23,3 +23,5 @@
  any.chirp.form.label.confirmation = Confirmación
  any.chirp.form.button.create = Crear
  
+  any.chirp.form.label.spam = Esto es spam
+ 

@@ -1,12 +1,17 @@
 package acme.features.administrator.announcement;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import acme.entities.Announcement;
-
+import acme.entities.SystemConfiguration;
+import acme.features.administrator.systemConfiguration.AdministratorSystemConfigurationRepository;
+import acme.features.spam.SpamDetector;
 import acme.framework.components.models.Model;
 import acme.framework.controllers.Errors;
 import acme.framework.controllers.Request;
@@ -20,6 +25,9 @@ public class AdministratorAnnouncementCreateService implements AbstractCreateSer
 
 		@Autowired
 		protected AdministratorAnnouncementRepository repository;
+		
+		@Autowired
+		protected AdministratorSystemConfigurationRepository	scRepo;
 
 		// AbstractCreateService<Administrator, Announcement> interface --------------
 
@@ -75,6 +83,24 @@ public class AdministratorAnnouncementCreateService implements AbstractCreateSer
 			assert request != null;
 			assert entity != null;
 			assert errors != null;
+			
+			final SystemConfiguration sc = this.scRepo.findSystemConfigurationById();
+			final String[] parts = sc.getStrongSpam().split(";");
+			final String[] parts2 = sc.getWeakSpam().split(";");
+			final List<String> strongSpam = new LinkedList<>();
+			final List<String> weakSpam = new LinkedList<>();
+			Collections.addAll(strongSpam, parts);
+			Collections.addAll(weakSpam, parts2);
+
+			if (entity.getBody() != null && !entity.getBody().equals("")) {
+				final boolean spam1 = SpamDetector.validateNoSpam(entity.getBody(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getBody(), strongSpam, sc.getStrongThreshold());
+				errors.state(request, spam1, "body", "administrator.announcement.form.label.spam", "spam");
+			}
+			
+			if (entity.getTitle() != null && !entity.getTitle().equals("")) {
+				final boolean spam1 = SpamDetector.validateNoSpam(entity.getTitle(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getTitle(), strongSpam, sc.getStrongThreshold());
+				errors.state(request, spam1, "title", "administrator.announcement.form.label.spam", "spam");
+			}
 
 			boolean confirmation;
 

@@ -17,16 +17,25 @@
 
 <acme:form>
 
-
-	<acme:input-textbox code="inventor.toolkit.form.label.code" path="code" />
+	<jstl:choose>
+		<jstl:when test="${command == 'create'}">
+			<acme:input-textbox code="inventor.toolkit.form.label.code" path="code" placeholder="ABC-123-A"/>
+		</jstl:when>
+		<jstl:otherwise>
+			<acme:input-textbox code="inventor.toolkit.form.label.code" path="code" placeholder="ABC-123-A" readonly="true"/>
+		</jstl:otherwise>
+	</jstl:choose>
+	
 	<acme:input-textbox code="inventor.toolkit.form.label.title"
 		path="title" />
 	<acme:input-textarea code="inventor.toolkit.form.label.description"
 		path="description" />
 	<acme:input-textarea code="inventor.toolkit.form.label.assemblyNotes"
 		path="assemblyNotes" />
+	<jstl:if test="${command == 'show' }">
 	<acme:input-money code="inventor.toolkit.form.label.totalPrice"
 		path="totalPrice" readonly="true" />
+		</jstl:if>
 	<acme:input-url code="inventor.toolkit.form.label.more-info"
 		path="moreInfo" />
 

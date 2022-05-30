@@ -3,6 +3,8 @@ package acme.features.inventor.item;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,7 +15,10 @@ import acme.components.CalculateMoneyExchange;
 import acme.entities.Item;
 import acme.entities.ItemType;
 import acme.entities.MoneyExchangeCache;
+import acme.entities.SystemConfiguration;
+import acme.features.administrator.systemConfiguration.AdministratorSystemConfigurationRepository;
 import acme.features.authenticated.moneyExchange.AuthenticatedMoneyExchangePerformService;
+import acme.features.spam.SpamDetector;
 import acme.forms.MoneyExchange;
 import acme.framework.components.models.Model;
 import acme.framework.controllers.Errors;
@@ -24,61 +29,85 @@ import acme.roles.Inventor;
 
 @Service
 
-public class InventorItemUpdateService implements AbstractUpdateService<Inventor,Item> {
-	
-	
+public class InventorItemUpdateService implements AbstractUpdateService<Inventor, Item> {
 
-		// Internal state ---------------------------------------------------------
+	// Internal state ---------------------------------------------------------
 
-		@Autowired
-		protected InventorItemRepository repository;
+	@Autowired
+	protected InventorItemRepository						repository;
 
-		// AbstractUpdateService<Inventor,Item> interface -----------------
-		
-		public boolean validateAvailableCurrencyRetailPrice(final Money retailPrice) {
-			
-			final String currencies = this.repository.findAvailableCurrencies();
-			final List<Object> listOfAvailableCurrencies = Arrays.asList((Object[])currencies.split(";"));
-			return listOfAvailableCurrencies.contains(retailPrice.getCurrency());
+	@Autowired
+	protected AdministratorSystemConfigurationRepository	scRepo;
+
+	// AbstractUpdateService<Inventor,Item> interface -----------------
+
+
+	public boolean validateAvailableCurrencyRetailPrice(final Money retailPrice) {
+
+		final String currencies = this.repository.findAvailableCurrencies();
+		final List<Object> listOfAvailableCurrencies = Arrays.asList((Object[]) currencies.split(";"));
+		return listOfAvailableCurrencies.contains(retailPrice.getCurrency());
+	}
+
+	@Override
+	public void validate(final Request<Item> request, final Item entity, final Errors errors) {
+		assert request != null;
+		assert entity != null;
+		assert errors != null;
+
+		final SystemConfiguration sc = this.scRepo.findSystemConfigurationById();
+		final String[] parts = sc.getStrongSpam().split(";");
+		final String[] parts2 = sc.getWeakSpam().split(";");
+		final List<String> strongSpam = new LinkedList<>();
+		final List<String> weakSpam = new LinkedList<>();
+		Collections.addAll(strongSpam, parts);
+		Collections.addAll(weakSpam, parts2);
+
+		if (entity.getDescription() != null && !entity.getDescription().equals("")) {
+			final boolean spam1 = SpamDetector.validateNoSpam(entity.getDescription(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getDescription(), strongSpam, sc.getStrongThreshold());
+			errors.state(request, spam1, "description", "inventor.item.form.label.spam", "spam");
 		}
 
-		@Override
-		public void validate(final Request<Item> request, final Item entity, final Errors errors) {
-			assert request != null;
-			assert entity != null;
-			assert errors != null;
-			
-			if (!errors.hasErrors("code")) {
-				
-				final Item existing = this.repository.findOneItemByCode(entity.getCode());
-				errors.state(request, existing.getId()==entity.getId(), "code", "inventor.item.form.error.duplicated");
+		if (entity.getName() != null && !entity.getName().equals("")) {
+			final boolean spam1 = SpamDetector.validateNoSpam(entity.getName(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getName(), strongSpam, sc.getStrongThreshold());
+			errors.state(request, spam1, "name", "inventor.item.form.label.spam", "spam");
+		}
+
+		if (entity.getTechnology() != null && !entity.getTechnology().equals("")) {
+			final boolean spam1 = SpamDetector.validateNoSpam(entity.getTechnology(), weakSpam, sc.getWeakThreshold()) && SpamDetector.validateNoSpam(entity.getTechnology(), strongSpam, sc.getStrongThreshold());
+			errors.state(request, spam1, "technology", "inventor.item.form.label.spam", "spam");
+		}
+
+		if (!errors.hasErrors("code")) {
+
+			final Item existing = this.repository.findOneItemByCode(entity.getCode());
+			errors.state(request, existing.getId() == entity.getId(), "code", "inventor.item.form.error.duplicated");
+
+		}
+
+		if (!errors.hasErrors("retailPrice")) {
+
+			final Money retailPrice = entity.getRetailPrice();
+			final boolean availableCurrency = this.validateAvailableCurrencyRetailPrice(retailPrice);
+			errors.state(request, availableCurrency, "retailPrice", "inventor.item.form.error.retail-price-currency-not-available");
+
+			if (entity.getType().equals(ItemType.COMPONENT)) {
+				final boolean retailPriceComponentPositive = retailPrice.getAmount() > 0.;
+				errors.state(request, retailPriceComponentPositive, "retailPrice", "inventor.item.form.error.retail-price-component-positive");
+
+			} else if (entity.getType().equals(ItemType.TOOL)) {
+				final boolean retailPriceToolZeroOrPositive = retailPrice.getAmount() >= 0.;
+				errors.state(request, retailPriceToolZeroOrPositive, "retailPrice", "inventor.item.form.error.retail-price-tool-zero-or-positive");
 
 			}
-			
-			if(!errors.hasErrors("retailPrice")){
-				
-						final Money retailPrice = entity.getRetailPrice();
-						final boolean availableCurrency = this.validateAvailableCurrencyRetailPrice(retailPrice);
-						errors.state(request, availableCurrency, "retailPrice", "inventor.item.form.error.retail-price-currency-not-available");
-						
-						if(entity.getType().equals(ItemType.COMPONENT)) {
-							final boolean retailPriceComponentPositive = retailPrice.getAmount() > 0.;
-							errors.state(request, retailPriceComponentPositive, "retailPrice", "inventor.item.form.error.retail-price-component-positive");
-							
-						} else if(entity.getType().equals(ItemType.TOOL)) {
-							final boolean retailPriceToolZeroOrPositive = retailPrice.getAmount() >= 0.;
-							errors.state(request, retailPriceToolZeroOrPositive, "retailPrice", "inventor.item.form.error.retail-price-tool-zero-or-positive");
-							
-						} 
-						
-			}
-			
+
 		}
+
+	}
 
 
 	@Autowired
-	protected AuthenticatedMoneyExchangePerformService	exchangeService;
-
+	protected AuthenticatedMoneyExchangePerformService exchangeService;
 
 	// AbstractUpdateService<Authenticated, Worker> interface -----------------
 
@@ -97,22 +126,17 @@ public class InventorItemUpdateService implements AbstractUpdateService<Inventor
 		return !result;
 	}
 
-
-
 	@Override
 	public void bind(final Request<Item> request, final Item entity, final Errors errors) {
 		assert request != null;
 		assert entity != null;
 		assert errors != null;
 
-
-			entity.setPublished(false);
-			this.repository.save(entity);
-		
+		entity.setPublished(false);
+		this.repository.save(entity);
 
 		request.bind(entity, errors, "name", "code", "technology", "description", "retailPrice", "moreInfo");
 	}
-
 
 	@Override
 	public void unbind(final Request<Item> request, final Item entity, final Model model) {
@@ -120,7 +144,7 @@ public class InventorItemUpdateService implements AbstractUpdateService<Inventor
 		assert entity != null;
 		assert model != null;
 
-		request.unbind(entity, model, "name", "type", "code", "technology", "description", "retailPrice","convertedPrice", "moreInfo", "published");
+		request.unbind(entity, model, "name", "type", "code", "technology", "description", "retailPrice", "convertedPrice", "moreInfo", "published");
 	}
 
 	@Override

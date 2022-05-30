@@ -33,3 +33,4 @@ inventor.item.form.error.duplicated  = Código existente
 inventor.item.form.error.retail-price-currency-not-available = Tipo de moneda no disponible en el sistema
 inventor.item.form.error.retail-price-component-positive = El precio al por menor debe ser mayor que 0
 inventor.item.form.error.retail-price-tool-zero-or-positive = El precio al por menor debe ser mayor o igual que 0
+inventor.item.form.label.spam = Esto es spam

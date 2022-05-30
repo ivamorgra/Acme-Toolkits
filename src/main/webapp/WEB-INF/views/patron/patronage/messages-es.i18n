@@ -55,3 +55,4 @@
  patron.patronage.form.button.update = Actualizar
  patron.patronage.form.button.delete = Eliminar
  patron.patronage.form.button.publish = Publicar
+ patron.patronage.form.label.spam = Esto es spam

@@ -53,7 +53,7 @@ public class InventorItemListMineService implements AbstractListService<Inventor
 		assert entity != null;
 		assert model != null;
 
-		request.unbind(entity, model, "name", "code", "technology", "description");
+		request.unbind(entity, model, "name", "code", "technology");
 	}
 	
 	@Override
