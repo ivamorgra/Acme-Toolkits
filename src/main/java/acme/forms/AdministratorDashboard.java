@@ -27,6 +27,9 @@ public class AdministratorDashboard {
 		Map<String,List<Money>>			priceOfToolsStats;
 		Map<String,Double>			patronagesStats;
 		
-
+		//Chimpum
+		Map<String,List<Pair<Double,String>>> ChimpumStats;
+		double ratioWithChimpum;
+		Integer	totalNumChimpum;
 
 }

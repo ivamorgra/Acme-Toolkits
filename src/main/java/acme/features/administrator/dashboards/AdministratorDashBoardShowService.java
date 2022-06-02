@@ -3,6 +3,7 @@ package acme.features.administrator.dashboards;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,16 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 		final Double maxPriceOfProposedPatronages = this.repository.maxBudgetProposedPatronages();
 		final Double averagePriceOfProposedPatronages = this.repository.averageBudgetProposedPatronages();
 		final Double deviationPriceOfProposedPatronages = this.repository.deviationBudgetProposedPatronages();
+		
+		//Chimpum
+		final double ratioWithChimpum = (double) this.repository.totalNumOfToolsWithChimPum()/this.repository.totalNumOfTools();
+		//final double ratioWithChimpum = (double) this.repository.totalNumOfComponentsWithChimPum()/this.repository.totalNumOfComponents();
+		
+		final int totalNumChimpum = this.repository.numberOfChimpumWhithItem();
+		final List<Object[]> desviationChimpum = this.repository.deviationChimpum();
+		final List<Object[]> averageChimpum = this.repository.averageChimpum();
+		final List<Object[]> maxChimpum = this.repository.maxChimpum();
+		final List<Object[]> minChimpum = this.repository.minChimpum();
 
 
 		final Map<String, List<Pair<Double,String>>> priceOfComponentsStats = new HashMap<>();
@@ -98,6 +109,15 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 		patronageStats.put("minProposed", minPriceOfProposedPatronages);
 		patronageStats.put("averageProposed", averagePriceOfProposedPatronages);
 		patronageStats.put("deviationProposed", deviationPriceOfProposedPatronages);
+		
+		//Chimpum
+		final Map<String, List<Pair<Double,String>>> ChimpumStats = new HashMap<>();
+		
+		ChimpumStats.put("desviation", this.objectListToPairList(desviationChimpum));
+		ChimpumStats.put("average", this.objectListToPairList(averageChimpum));
+		ChimpumStats.put("max", this.objectListToPairList(maxChimpum));
+		ChimpumStats.put("min", this.objectListToPairList(minChimpum));
+
 
 		final AdministratorDashboard result = new AdministratorDashboard();
 
@@ -107,7 +127,11 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 		result.setPriceOfComponentsStats(priceOfComponentsStats);
 		result.setPriceOfToolsStats(priceOfToolsStats);
 		result.setPatronagesStats(patronageStats);
-
+		
+		//Chimpum
+		result.setChimpumStats(ChimpumStats);
+		result.setTotalNumChimpum(totalNumChimpum);
+		result.setRatioWithChimpum(ratioWithChimpum);
 		return result;
 	}
 
@@ -117,7 +141,7 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 		assert entity != null;
 		assert model != null;
 
-		request.unbind(entity, model, "totalNumComponents", "totalNumTools");
+		request.unbind(entity, model,"ratioWithChimpum", "totalNumComponents", "totalNumTools", "totalNumChimpum");
 		model.setAttribute("numberOfAcceptedPatronages", entity.getNumberOfPatronages().get("accepted"));
 		model.setAttribute("numberOfDeniedPatronages", entity.getNumberOfPatronages().get("denied"));
 		model.setAttribute("numberOfProposedPatronages", entity.getNumberOfPatronages().get("proposed"));
@@ -141,6 +165,14 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 		model.setAttribute("minProposedPatronages", entity.getPatronagesStats().get("minProposed"));
 		model.setAttribute("averageProposedPatronages", entity.getPatronagesStats().get("averageProposed"));
 		model.setAttribute("deviationProposedPatronages", entity.getPatronagesStats().get("deviationProposed"));
+		
+		//Chimpum
+		model.setAttribute("ratioWithChimpum",entity.getRatioWithChimpum() );
+		model.setAttribute("desviationChimpum", entity.getChimpumStats().get("desviation"));
+		model.setAttribute("averageChimpum", entity.getChimpumStats().get("average"));
+		model.setAttribute("minChimpum", entity.getChimpumStats().get("min"));
+		model.setAttribute("maxChimpum", entity.getChimpumStats().get("max"));
+
 	}
 
 	private List<Money> objectListToMoneyList(final List<Object[]> list) {
@@ -157,14 +189,21 @@ public class AdministratorDashBoardShowService implements AbstractShowService<Ad
 	private List<Pair<Double,String>> objectListToPairList(final List<Object[]> list) {
 		final List<Pair<Double,String>> res = new ArrayList<Pair<Double,String>>();
 		for (final Object[] object : list) {
-			String string;
-			final Double value = (Double) object[0];
-			string = ((String) object[1]);
-			string += ", " + ((String) object[2]);
+			String string = "";
+			for (int i = 1; i<object.length;i++) {
+					final Double value = (Double) object[0];
+					while (i<object.length-1) {
+						string += ((String) object[i]) + ", ";
+						i++;
+					}
+					string += ((String) object[i]);
+					res.add(Pair.of(value, string));
+					
+			}
 			
-			res.add(Pair.of(value, string));
+			
+			
 		}
 		return res;
 	}
-
 }
